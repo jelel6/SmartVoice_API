@@ -1,0 +1,9 @@
+{ 
+  "clientId": "GDphGQ3HonLiBJlAK_bKZg==",
+  "clientKey": "QbRXbiJP9ZSVg13bXa0a3xeD9wz-Tu5ft2afYUYc0zWYHnFlnEW7EFpMWDaFd4Va25mVajfVvjewul_P-7ZoXw==",
+  
+  "port": 3002,
+  "https": false,
+  "sslKeyFile": "server.key",
+  "sslCrtFile": "server.crt"  
+}
