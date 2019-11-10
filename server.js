@@ -7,9 +7,6 @@ const houndifyExpress = require('houndify').HoundifyExpress;
 const fs = require('fs');
 const path = require('path');
 
-const textRequest = require('./Controllers/textRequest');
-const voiceRequest = require('./Controllers/voiceRequest');
-const initVoiceRequest = require('./Controllers/initVoiceRequest');
 
 const app = express();
 
