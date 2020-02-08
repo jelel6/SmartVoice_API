@@ -4,6 +4,23 @@ const cors = require('cors');
 const Houndify = require('houndify');
 const houndifyExpress = require('houndify').HoundifyExpress;
 const path = require('path');
+const knex = require('knex');
+const bcrypt = require('bcrypt-nodejs');
+
+const db = knex({
+    client: 'pg',    
+    connection: {
+    host : '127.0.0.1',
+    user : 'postgres',
+    password : 'jelel',
+    database : 'SmartVoice'
+  },
+});
+
+db.select('*').from('users').then(data => {
+  console.log(data);
+})
+
 
 const app = express();
 
@@ -15,115 +32,115 @@ const configFile = argv.config || 'config.json';
 const config = require(path.join(__dirname, configFile));
 
 
-const database = {
-  users: [
-    {
-      id: '1',
-      password: 'orange',
-      name: 'jelel',
-      email: 'jelel@gmail.com',
-      history: [],
-      legend: 0,
-      joined: new Date()
-    },
-     {
-      id: '2',
-      password: 'pineapple',
-      name: 'sally',
-      email: 'sally@gmail.com',
-      history: [],
-      legend: 0,
-      joined: new Date()
-    }
-  ]
-}
-
 app.get('/', (req, res) => {
   res.json(database.users);
 })
 
 
 app.post('/signin', (req, res) => {
-  if (req.body.email === database.users[0].email && 
-      req.body.password === database.users[0].password) {
-    res.json(database.users[0]);
-  } else {
-     res.status(400).json('error logging in')
-    }
+  const { email1, name} = req.body.email;
+  db.select('email', 'hash').from('login')
+    .where('email', '=', req.body.email)
+    .then(data => {
+      const isValid = bcrypt.compareSync(req.body.password, data[0].hash);
+      if (isValid) {
+       return db.select('*').from('users')
+          .where('email', '=', req.body.email)
+          .then(user => {
+            res.json(user[0])
+          })
+          .catch(err => res.status(400).json('unable to get user'))
+      } else {
+         res.status(400).json('wrong credentials')
+        }
+    }) 
+    .catch(err => res.status(400).json('wrong credentials'))
 })
 
 app.post('/register', (req, res) => {
   const { name, email, password } = req.body;
-  database.users.push({
-      id: '3',
-      name: name,
+  const hash = bcrypt.hashSync(password); 
+  db.transaction(trx => { 
+    trx.insert({
+      hash: hash,
       email: email,
-      history: [],
-      legend: 0,
-      joined: new Date()
-  })
-  res.json(database.users[database.users.length-1])
+    })
+    .into('login')
+    .returning('email')
+    .then(loginEmail => {
+     return trx('users')
+       .returning('*')
+       .insert({
+          email: loginEmail[0],
+          name: name,
+          joined: new Date()
+        })
+        .then(user => {
+          res.json(user[0]);
+        })
+    })
+    .then(trx.commit)
+    .catch(trx.rollback)
+  })     
+    .catch(err => res.status(400).json('unable to register'))
 })
 
 app.get('/profile/:id', (req, res) => {
  const { id } = req.params;
- let found = false;
- database.users.forEach(user => {
-  if (user.id === id) {
-    found = true
-    return res.json(user)
-  } 
+ db.select('*').from('users').where({id
  })
-  if (!found) {
-    res.status(400).json('found No');
-  }
-})
+  .then(user => {
+    if (user.length) {
+      res.json(user[0]);
+    } else {
+       res.status(400).json('Not found')
+      }
+ })
+  .catch(err => res.status(400).json('error getting user')) 
+}) 
 
 app.get('/history/:id', (req, res) => {
- const { id } = req.params;
- let found = false;
- database.users.forEach(user => {
-  if (user.id === id) {
-    found = true
-    return res.json(user.history)
-  } 
- })
-  if (!found) {
-    res.status(400).json('found No');
-  }
+  const { id } = req.params;
+  db.select('*').from('history').where({
+  id: id
+  })
+  .then(saved => {
+    if(saved) {
+      res.json(saved);
+    } else {
+      res.status(400).json('No Saved Queries')
+    }     
+  })
+   .catch(err => res.status(400).json('not found'))
 })
 
+
 app.post('/saveResponse', (req, res) => {
-  const { id, query, commandKind, writtenResponse, status } = req.body;
-  database.users.forEach(user => {
-    if (user.id === id) {
-      console.log(+id);
-      database.users[+id-1].history.push({
-        // query: query,
-        // commandKind: commandKind,
-        // status: status,
-        writtenResponse: writtenResponse,
-      })
-         res.json('Saved Successfully');
-      // return res.json(database.users[+id-1].history[database.users[+id-1].history.length-1]);
-    } 
+  const { id, query, writtenResponse } = req.body;
+ db('history')
+   .returning('*')
+   .insert({
+      id: id,
+      query: 'who is de bests',
+      response: 'Thanks to a fellow student, Rodrigo, who pointed out that there are a few changes in the code from the last video. Make sure you take note of these so you don\'t get an error in your code as you move on to this next part'
   })
+    .then(response => {
+      res.json(response[0]);
+    })
+    .catch(err => res.status(400).json('unable to save duplicate query')) 
 })
 
 app.put('/queryCount', (req, res) => {
   const { id } = req.body;
-  let found = false;
-  database.users.forEach(user => {
-    if (user.id === id) {
-      found = true;
-      user.legend++;
-      return res.json(user.legend);
-    } 
+  db('users').where('id', '=', id)
+    .increment('entries', 1)
+    .returning('entries')
+    .then(entries => {
+      res.json(entries[0]);
+    })
+    .catch(err => res.status(400).json('unable to get entries'))
  })
-   if (!found) {
-    res.status(400).json('Not found');
-  }
-})
+
 
 app.get('/houndifyAuth', Houndify.HoundifyExpress.createAuthenticationHandler({
     clientId: config.clientId,
