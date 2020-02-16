@@ -1,5 +1,8 @@
 const handleSaveResponse = (req, res, db) => {
   const { id, query, writtenResponse } = req.body;
+  if (!query || !id) {
+    return res.status(400).json('invalid response data')
+  }
  db('history')
    .returning('*')
    .insert({
