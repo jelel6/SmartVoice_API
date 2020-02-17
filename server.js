@@ -17,10 +17,8 @@ const saveResponse = require('./controllers/saveResponse');
 const db = knex({
     client: 'pg',    
     connection: {
-    host : 'postgresql-octagonal-03766',
-    user : 'postgres',
-    password : 'jelel',
-    database : 'SmartVoice'
+    host : process.env.DATABASE_URL,
+    ssl: true,
   },
 });
 
