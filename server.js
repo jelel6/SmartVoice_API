@@ -56,7 +56,7 @@ app.get('/houndifyAuth', Houndify.HoundifyExpress.createAuthenticationHandler({
 
 app.post('/textSearchProxy', bodyParser.text({ limit: '1mb' }), Houndify.HoundifyExpress.createTextProxyHandler());
 
-app.listen(3002, () => {
-  console.log('app is running on port 3002');
+app.listen(process.env.PORT || 3002, () => {
+  console.log(`app is running on port ${process.env.PORT}`);
 });
 
