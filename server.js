@@ -34,14 +34,6 @@ const argv = require('minimist')(process.argv.slice(2));
 const configFile = argv.config || 'config.json';
 const config = require(path.join(__dirname, configFile));
 
-
-// app.get('/', (req, res) => { 
-//   db.select('*').from('users').then(users => {
-//     res.json(users);
-//   })
-//   .catch(err => res.status(400).json('unable to get users'))
-// });
-
 app.get('/', (req, res) => { res.send('it is working')});
 app.post('/signin', (req, res) => { signin.handleSignin(req,res, db, bcrypt)});
 app.post('/register', (req, res) => { register.handleRegister(req, res, db, bcrypt) });
