@@ -25,7 +25,6 @@ const db = knex({
 });
 
 
-
 const app = express();
 
 app.use(bodyParser.json());
@@ -36,22 +35,19 @@ const configFile = argv.config || 'config.json';
 const config = require(path.join(__dirname, configFile));
 
 
-
 app.get('/', (req, res) => { 
   db.select('*').from('users').then(users => {
     res.json(users);
   })
   .catch(err => res.status(400).json('unable to get users'))
-})
+});
 
-
-app.post('/signin', (req, res) => { signin.handleSignin(req,res, db, bcrypt)})
-app.post('/register', (req, res) => { register.handleRegister(req, res, db, bcrypt) })
+app.post('/signin', (req, res) => { signin.handleSignin(req,res, db, bcrypt)});
+app.post('/register', (req, res) => { register.handleRegister(req, res, db, bcrypt) });
 app.get('/profile/:id', (req, res) => {profile.handleProfile(req, res, db)}); 
 app.get('/history/:id', (req, res) => { history.handleHistory(req, res, db)});
 app.post('/saveResponse', (req, res) => { saveResponse.handleSaveResponse(req, res, db)});
 app.put('/queryCount', (req, res) => { queryCount.handleQueryCount(req, res, db)});
-
 
 app.get('/houndifyAuth', Houndify.HoundifyExpress.createAuthenticationHandler({
   clientId: config.clientId,
@@ -62,5 +58,5 @@ app.post('/textSearchProxy', bodyParser.text({ limit: '1mb' }), Houndify.Houndif
 
 app.listen(3002, () => {
   console.log('app is running on port 3002');
-})
+});
 
