@@ -1,6 +1,6 @@
 { 
-  "clientId": "dZtmNkiCT30LvR6Jj2FCvw==",
-  "clientKey": "fp_CZ15s15Di6Ms_kBB5nc3sspX_Z4YACal7-sNvIzRr98pguMDpA_4ni6CtwtKh5E17IJS_FsY_-0j3amNrcQ==",
+  "clientId": "Your_houndify_client_Id",
+  "clientKey": "Your_houndify_client_Key",
   
   "port": 3002,
   "https": false,
